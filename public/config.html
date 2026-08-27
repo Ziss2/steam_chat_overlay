@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="th">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>ตั้งค่า Chat Overlay (Twitch + YouTube)</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="/css/config.css" />
+	</head>
+	<body>
+		<header class="topbar">
+			<h1>Chat Overlay — Twitch + YouTube</h1>
+			<div class="statuses">
+				<span class="pill" id="status-twitch" data-state="disabled">Twitch: —</span>
+				<span class="pill" id="status-youtube" data-state="disabled">YouTube: —</span>
+				<span class="saved" id="saved-hint" hidden>บันทึกแล้ว</span>
+			</div>
+		</header>
+
+		<main class="layout">
+			<div class="columns">
+				<section class="card">
+					<h2>1. การเชื่อมต่อแชท</h2>
+
+					<fieldset>
+						<legend>Twitch</legend>
+						<label class="switch">
+							<input type="checkbox" data-path="twitch.enabled" />
+							<span>เปิดใช้งาน Twitch</span>
+						</label>
+						<label class="field">
+							<span>ชื่อช่อง (login เช่น <code>xqc</code>)</span>
+							<input type="text" data-path="twitch.channel" placeholder="ชื่อช่องของคุณ" spellcheck="false" />
+						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="twitch.showSubEvents" />
+							<span>แสดงอีเวนต์ซับ / raid / ประกาศ</span>
+						</label>
+						<p class="hint">อ่านแชทแบบไม่ต้องล็อกอิน (anonymous IRC) ไม่ต้องใส่ token</p>
+					</fieldset>
+
+					<fieldset>
+						<legend>YouTube</legend>
+						<label class="switch">
+							<input type="checkbox" data-path="youtube.enabled" />
+							<span>เปิดใช้งาน YouTube</span>
+						</label>
+						<label class="field">
+							<span>โหมดการเชื่อมต่อ</span>
+							<select data-path="youtube.mode">
+								<option value="auto">อัตโนมัติ (มี key ใช้ API, หมดโควตาสลับไป scrape)</option>
+								<option value="api">API v3 เท่านั้น (ต้องมี API key)</option>
+								<option value="scrape">ไม่ใช้ key (อ่านหน้า live chat)</option>
+							</select>
+						</label>
+						<label class="field">
+							<span>ลิงก์/ID วิดีโอไลฟ์ (ถ้าปล่อยว่างจะหาจาก Channel ให้)</span>
+							<input type="text" data-path="youtube.videoId" placeholder="https://youtube.com/watch?v=..." spellcheck="false" />
+						</label>
+						<label class="field">
+							<span>Channel ID / @handle / ลิงก์ช่อง</span>
+							<input type="text" data-path="youtube.channelId" placeholder="UCxxxxxxxx หรือ @yourhandle" spellcheck="false" />
+						</label>
+						<label class="field">
+							<span>YouTube API key (ไม่บังคับ)</span>
+							<input type="password" data-path="youtube.apiKey" placeholder="ใส่ที่ .env ก็ได้ (YOUTUBE_API_KEY)" autocomplete="off" spellcheck="false" />
+						</label>
+						<label class="field">
+							<span>ช่วงเวลา poll (ms) — เฉพาะโหมด API</span>
+							<input type="number" min="1500" step="500" data-path="youtube.pollIntervalMs" />
+						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="youtube.showSuperChat" />
+							<span>แสดง Super Chat / Super Sticker</span>
+						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="youtube.showMemberEvents" />
+							<span>แสดงอีเวนต์สมาชิก (membership)</span>
+						</label>
+						<p class="hint">
+							โหมด API มีโควตา 10,000 หน่วย/วัน (poll ละ ~5 หน่วย) ถ้าไลฟ์ยาวแนะนำโหมดไม่ใช้ key
+						</p>
+					</fieldset>
+
+					<fieldset>
+						<legend>อีโมทเสริม (Twitch)</legend>
+						<label class="switch"><input type="checkbox" data-path="emotes.bttv" /><span>BetterTTV</span></label>
+						<label class="switch"><input type="checkbox" data-path="emotes.sevenTv" /><span>7TV</span></label>
+						<label class="switch"><input type="checkbox" data-path="emotes.ffz" /><span>FrankerFaceZ</span></label>
+					</fieldset>
+
+					<div class="row">
+						<button type="button" class="btn" data-action="reconnect" data-platform="twitch">รีคอนเน็ก Twitch</button>
+						<button type="button" class="btn" data-action="reconnect" data-platform="youtube">รีคอนเน็ก YouTube</button>
+					</div>
+				</section>
+
+				<section class="card">
+					<h2>2. หน้าตา / ธีม</h2>
+
+					<fieldset>
+						<legend>ตัวอักษร</legend>
+						<label class="field">
+							<span>ฟอนต์</span>
+							<input type="text" data-path="theme.fontFamily" spellcheck="false" list="font-presets" />
+							<datalist id="font-presets">
+								<option value="Kanit, Noto Sans Thai, Segoe UI, sans-serif"></option>
+								<option value="Itim, Kanit, sans-serif"></option>
+								<option value="Noto Sans Thai, Segoe UI, sans-serif"></option>
+								<option value="Prompt, Kanit, sans-serif"></option>
+								<option value="Segoe UI, Arial, sans-serif"></option>
+							</datalist>
+						</label>
+						<label class="field range">
+							<span>ขนาดตัวอักษร <output data-output="theme.fontSize"></output>px</span>
+							<input type="range" min="12" max="48" step="1" data-path="theme.fontSize" />
+						</label>
+						<label class="field range">
+							<span>น้ำหนักข้อความ <output data-output="theme.fontWeight"></output></span>
+							<input type="range" min="300" max="800" step="100" data-path="theme.fontWeight" />
+						</label>
+						<label class="field range">
+							<span>น้ำหนักชื่อผู้ใช้ <output data-output="theme.nameWeight"></output></span>
+							<input type="range" min="400" max="900" step="100" data-path="theme.nameWeight" />
+						</label>
+						<label class="field range">
+							<span>ระยะบรรทัด <output data-output="theme.lineHeight"></output></span>
+							<input type="range" min="1" max="2" step="0.05" data-path="theme.lineHeight" />
+						</label>
+					</fieldset>
+
+					<fieldset>
+						<legend>เลย์เอาต์</legend>
+						<label class="field range">
+							<span>ความกว้าง <output data-output="theme.width"></output>px</span>
+							<input type="range" min="240" max="900" step="10" data-path="theme.width" />
+						</label>
+						<label class="field">
+							<span>รูปแบบข้อความ</span>
+							<select data-path="theme.layout">
+								<option value="card">การ์ด (ชื่ออยู่บรรทัดบน)</option>
+								<option value="compact">กระชับ (ชื่อ: ข้อความ)</option>
+								<option value="bubble">ฟองข้อความ + avatar (สไตล์ V2)</option>
+							</select>
+						</label>
+						<label class="field">
+							<span>ชิดด้าน</span>
+							<select data-path="theme.align">
+								<option value="left">ซ้าย</option>
+								<option value="right">ขวา</option>
+							</select>
+						</label>
+						<label class="field">
+							<span>ข้อความใหม่อยู่</span>
+							<select data-path="theme.direction">
+								<option value="bottom">ด้านล่าง (ไหลขึ้น)</option>
+								<option value="top">ด้านบน (ไหลลง)</option>
+							</select>
+						</label>
+						<label class="field range">
+							<span>ช่องไฟระหว่างข้อความ <output data-output="theme.gap"></output>px</span>
+							<input type="range" min="0" max="24" step="1" data-path="theme.gap" />
+						</label>
+						<label class="field range">
+							<span>ระยะขอบในกล่อง <output data-output="theme.padding"></output>px</span>
+							<input type="range" min="0" max="24" step="1" data-path="theme.padding" />
+						</label>
+						<label class="field range">
+							<span>ความโค้งมุม <output data-output="theme.radius"></output>px</span>
+							<input type="range" min="0" max="28" step="1" data-path="theme.radius" />
+						</label>
+					</fieldset>
+
+					<fieldset>
+						<legend>สี</legend>
+						<label class="field">
+							<span>สีตัวอักษร</span>
+							<input type="color" data-path="theme.textColor" />
+						</label>
+						<label class="field">
+							<span>สีพื้นกล่องข้อความ</span>
+							<input type="color" data-path="theme.bgColor" />
+						</label>
+						<label class="field range">
+							<span>ความทึบพื้นกล่อง <output data-output="theme.bgOpacity"></output></span>
+							<input type="range" min="0" max="1" step="0.05" data-path="theme.bgOpacity" />
+						</label>
+						<label class="field">
+							<span>โหมดสีชื่อผู้ใช้</span>
+							<select data-path="theme.colorMode">
+								<option value="platform">ตามแพลตฟอร์ม</option>
+								<option value="chat">ตามสีที่ผู้ใช้ตั้ง (Twitch)</option>
+								<option value="fixed">สีเดียวทั้งหมด</option>
+							</select>
+						</label>
+						<label class="field">
+							<span>สีประจำ Twitch</span>
+							<input type="color" data-path="theme.twitchColor" />
+						</label>
+						<label class="field">
+							<span>สีประจำ YouTube</span>
+							<input type="color" data-path="theme.youtubeColor" />
+						</label>
+						<label class="field">
+							<span>พื้นหลังหน้า overlay (chroma key)</span>
+							<input type="text" data-path="theme.background" placeholder="transparent หรือ #00ff00" spellcheck="false" />
+						</label>
+					</fieldset>
+
+					<fieldset>
+						<legend>องค์ประกอบ</legend>
+						<label class="switch"><input type="checkbox" data-path="theme.showPlatformIcon" /><span>ไอคอนบอกแพลตฟอร์ม</span></label>
+						<label class="switch"><input type="checkbox" data-path="theme.accentBar" /><span>แถบสีด้านข้าง</span></label>
+						<label class="switch"><input type="checkbox" data-path="theme.showBadges" /><span>Badge (ซับ/มอด/สมาชิก)</span></label>
+						<label class="switch"><input type="checkbox" data-path="theme.showEmotes" /><span>อีโมท / emoji เป็นรูป</span></label>
+						<label class="switch"><input type="checkbox" data-path="theme.showTimestamps" /><span>เวลาที่ส่งข้อความ</span></label>
+						<label class="switch"><input type="checkbox" data-path="theme.showAvatar" /><span>รูปโปรไฟล์ผู้ชม (avatar)</span></label>
+						<label class="switch"><input type="checkbox" data-path="theme.outline" /><span>ขอบดำรอบตัวอักษร</span></label>
+						<label class="switch"><input type="checkbox" data-path="theme.shadow" /><span>เงากล่องข้อความ</span></label>
+						<label class="field range">
+							<span>ขนาดอีโมท <output data-output="theme.emoteSize"></output>px</span>
+							<input type="range" min="16" max="64" step="2" data-path="theme.emoteSize" />
+						</label>
+						<label class="field range">
+							<span>ขนาด avatar <output data-output="theme.avatarSize"></output>px</span>
+							<input type="range" min="28" max="96" step="2" data-path="theme.avatarSize" />
+						</label>
+						<p class="hint">avatar ของ Twitch ดึงจาก Twitch โดยตรง (มี decapi.me สำรอง) ส่วน YouTube มาพร้อมข้อความอยู่แล้ว</p>
+					</fieldset>
+
+					<fieldset>
+						<legend>โหมดฟองข้อความ</legend>
+						<label class="field">
+							<span>สีพื้นฟองข้อความ</span>
+							<input type="color" data-path="theme.bubbleColor" />
+						</label>
+						<label class="field">
+							<span>สีตัวอักษรในฟอง</span>
+							<input type="color" data-path="theme.bubbleTextColor" />
+						</label>
+						<label class="switch"><input type="checkbox" data-path="theme.liveMotion" /><span>ป้ายชื่อขยับ + ฟองลอยเบา ๆ</span></label>
+						<p class="hint">ใช้เมื่อเลือก "รูปแบบข้อความ" เป็นฟองข้อความ — เปิด avatar ด้วยจะได้หางฟองชี้ไปที่รูปโปรไฟล์</p>
+					</fieldset>
+
+					<fieldset>
+						<legend>พฤติกรรม</legend>
+						<label class="field">
+							<span>อนิเมชันข้อความเข้า</span>
+							<select data-path="theme.animation">
+								<option value="slide">เลื่อนเข้า</option>
+								<option value="fade">ค่อย ๆ ปรากฏ</option>
+								<option value="pop">เด้ง</option>
+								<option value="none">ไม่มี</option>
+							</select>
+						</label>
+						<label class="field range">
+							<span>จำนวนข้อความบนจอ <output data-output="theme.maxMessages"></output></span>
+							<input type="range" min="3" max="60" step="1" data-path="theme.maxMessages" />
+						</label>
+						<label class="field range">
+							<span>ลบข้อความหลัง <output data-output="theme.messageLifetimeSec"></output> วิ (0 = ไม่ลบ)</span>
+							<input type="range" min="0" max="120" step="5" data-path="theme.messageLifetimeSec" />
+						</label>
+					</fieldset>
+				</section>
+
+				<section class="card">
+					<h2>3. ตัวกรอง</h2>
+					<label class="switch"><input type="checkbox" data-path="filters.hideCommands" /><span>ซ่อนคำสั่งบอท (!command, /command)</span></label>
+					<label class="field">
+						<span>ความยาวสูงสุด (ตัวอักษร, 0 = ไม่จำกัด)</span>
+						<input type="number" min="0" step="10" data-path="filters.maxLength" />
+					</label>
+					<label class="field">
+						<span>บล็อกผู้ใช้ (บรรทัดละคน)</span>
+						<textarea rows="4" data-path="filters.blockedUsers" data-list="1" placeholder="nightbot&#10;streamelements"></textarea>
+					</label>
+					<label class="field">
+						<span>บล็อกคำ (บรรทัดละคำ)</span>
+						<textarea rows="4" data-path="filters.blockedWords" data-list="1"></textarea>
+					</label>
+				</section>
+			</div>
+
+			<aside class="side">
+				<section class="card">
+					<h2>ลิงก์สำหรับ OBS</h2>
+					<p class="hint">เพิ่ม Browser Source แล้ววาง URL นี้ (กว้าง/สูงตามที่ตั้งไว้)</p>
+					<div class="copy-row">
+						<input type="text" id="overlay-url" readonly />
+						<button type="button" class="btn" data-action="copy" data-target="overlay-url">คัดลอก</button>
+					</div>
+					<details>
+						<summary>แยกหน้าต่างละแพลตฟอร์ม / ทับค่าธีมเฉพาะซอร์ส</summary>
+						<div class="copy-row">
+							<input type="text" id="overlay-url-twitch" readonly />
+							<button type="button" class="btn" data-action="copy" data-target="overlay-url-twitch">คัดลอก</button>
+						</div>
+						<div class="copy-row">
+							<input type="text" id="overlay-url-youtube" readonly />
+							<button type="button" class="btn" data-action="copy" data-target="overlay-url-youtube">คัดลอก</button>
+						</div>
+						<p class="hint">
+							ต่อท้าย URL ด้วยพารามิเตอร์เพื่อทับธีมเฉพาะซอร์สนั้น เช่น
+							<code>?fontSize=26&amp;width=360&amp;showBadges=0</code>
+						</p>
+					</details>
+				</section>
+
+				<section class="card">
+					<h2>พรีวิวสด</h2>
+					<div class="preview-actions">
+						<button type="button" class="btn" data-action="test" data-platform="twitch" data-kind="chat">แชท Twitch</button>
+						<button type="button" class="btn" data-action="test" data-platform="youtube" data-kind="chat">แชท YouTube</button>
+						<button type="button" class="btn" data-action="test" data-platform="youtube" data-kind="money">Super Chat</button>
+						<button type="button" class="btn" data-action="test" data-platform="twitch" data-kind="money">Bits</button>
+						<button type="button" class="btn" data-action="test" data-platform="twitch" data-kind="sub">ซับใหม่</button>
+						<button type="button" class="btn ghost" data-action="clear">ล้างจอ</button>
+					</div>
+					<div class="preview-frame">
+						<iframe id="preview" src="/overlay?preview=1" title="preview"></iframe>
+					</div>
+					<p class="hint">พรีวิวใช้เอนจินเดียวกับ overlay จริง ปรับค่าแล้วเห็นผลทันทีทั้งใน OBS</p>
+				</section>
+			</aside>
+		</main>
+
+		<script type="module" src="/js/config.js"></script>
+	</body>
+</html>
