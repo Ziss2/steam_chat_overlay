@@ -446,7 +446,7 @@ body.bg-solid {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	max-width: calc(100% - 28px);
+	max-width: var(--width);
 	padding: 1px 10px;
 	border-radius: 999px;
 	background: var(--name-color, var(--accent));
