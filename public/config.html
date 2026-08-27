@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>ตั้งค่า Chat Overlay (Twitch + YouTube)</title>
+		<title>ตั้งค่า Chat Overlay (Twitch + YouTube + Kick + TikTok)</title>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link
 			href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap"
@@ -13,10 +13,12 @@
 	</head>
 	<body>
 		<header class="topbar">
-			<h1>Chat Overlay — Twitch + YouTube</h1>
+			<h1>Chat Overlay — Twitch + YouTube + Kick + TikTok</h1>
 			<div class="statuses">
 				<span class="pill" id="status-twitch" data-state="disabled">Twitch: —</span>
 				<span class="pill" id="status-youtube" data-state="disabled">YouTube: —</span>
+				<span class="pill" id="status-kick" data-state="disabled">kick: —</span>
+				<span class="pill" id="status-tiktok" data-state="disabled">tiktok: —</span>
 				<span class="saved" id="saved-hint" hidden>บันทึกแล้ว</span>
 			</div>
 		</header>
@@ -87,6 +89,44 @@
 					</fieldset>
 
 					<fieldset>
+						<legend>Kick</legend>
+						<label class="switch">
+							<input type="checkbox" data-path="kick.enabled" />
+							<span>เปิดใช้งาน Kick</span>
+						</label>
+						<label class="field">
+							<span>ชื่อช่องบน Kick (slug เช่น <code>xqc</code>)</span>
+							<input type="text" data-path="kick.channel" placeholder="ชื่อช่องบน kick.com" spellcheck="false" />
+						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="kick.showSubEvents" />
+							<span>แสดงอีเวนต์ติดซับ / ไฮไลต์</span>
+						</label>
+						<p class="hint">อ่านแชทสาธารณะผ่าน WebSocket ของ Kick โดยไม่ต้องล็อกอินหรือใช้ API key</p>
+					</fieldset>
+
+					<fieldset>
+						<legend>TikTok</legend>
+						<label class="switch">
+							<input type="checkbox" data-path="tiktok.enabled" />
+							<span>เปิดใช้งาน TikTok</span>
+						</label>
+						<label class="field">
+							<span>ชื่อผู้ใช้ TikTok (เช่น <code>nasher</code> หรือ <code>@nasher</code>)</span>
+							<input type="text" data-path="tiktok.channel" placeholder="ชื่อผู้ใช้ TikTok" spellcheck="false" />
+						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="tiktok.showGiftEvents" />
+							<span>แสดงอีเวนต์ของขวัญ (Gift)</span>
+						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="tiktok.showMemberEvents" />
+							<span>แสดงอีเวนต์สมาชิกเข้าร่วม</span>
+						</label>
+						<p class="hint">ใช้ไลบรารี tiktok-live-connector อ่านแชทสดได้ด้วยแค่ชื่อผู้ใช้ (ไม่ต้อง token)</p>
+					</fieldset>
+
+					<fieldset>
 						<legend>อีโมทเสริม (Twitch)</legend>
 						<label class="switch"><input type="checkbox" data-path="emotes.bttv" /><span>BetterTTV</span></label>
 						<label class="switch"><input type="checkbox" data-path="emotes.sevenTv" /><span>7TV</span></label>
@@ -96,6 +136,8 @@
 					<div class="row">
 						<button type="button" class="btn" data-action="reconnect" data-platform="twitch">รีคอนเน็ก Twitch</button>
 						<button type="button" class="btn" data-action="reconnect" data-platform="youtube">รีคอนเน็ก YouTube</button>
+						<button type="button" class="btn" data-action="reconnect" data-platform="kick">รีคอนเน็ก Kick</button>
+						<button type="button" class="btn" data-action="reconnect" data-platform="tiktok">รีคอนเน็ก TikTok</button>
 					</div>
 				</section>
 
@@ -206,6 +248,14 @@
 							<input type="color" data-path="theme.youtubeColor" />
 						</label>
 						<label class="field">
+							<span>สีประจำ Kick</span>
+							<input type="color" data-path="theme.kickColor" />
+						</label>
+						<label class="field">
+							<span>สีประจำ TikTok</span>
+							<input type="color" data-path="theme.tiktokColor" />
+						</label>
+						<label class="field">
 							<span>พื้นหลังหน้า overlay (chroma key)</span>
 							<input type="text" data-path="theme.background" placeholder="transparent หรือ #00ff00" spellcheck="false" />
 						</label>
@@ -300,10 +350,18 @@
 							<input type="text" id="overlay-url-twitch" readonly />
 							<button type="button" class="btn" data-action="copy" data-target="overlay-url-twitch">คัดลอก</button>
 						</div>
-						<div class="copy-row">
-							<input type="text" id="overlay-url-youtube" readonly />
-							<button type="button" class="btn" data-action="copy" data-target="overlay-url-youtube">คัดลอก</button>
-						</div>
+					<div class="copy-row">
+						<input type="text" id="overlay-url-youtube" readonly />
+						<button type="button" class="btn" data-action="copy" data-target="overlay-url-youtube">คัดลอก</button>
+					</div>
+					<div class="copy-row">
+						<input type="text" id="overlay-url-kick" readonly />
+						<button type="button" class="btn" data-action="copy" data-target="overlay-url-kick">คัดลอก</button>
+					</div>
+					<div class="copy-row">
+						<input type="text" id="overlay-url-tiktok" readonly />
+						<button type="button" class="btn" data-action="copy" data-target="overlay-url-tiktok">คัดลอก</button>
+					</div>
 						<p class="hint">
 							ต่อท้าย URL ด้วยพารามิเตอร์เพื่อทับธีมเฉพาะซอร์สนั้น เช่น
 							<code>?fontSize=26&amp;width=360&amp;showBadges=0</code>
@@ -316,8 +374,12 @@
 					<div class="preview-actions">
 						<button type="button" class="btn" data-action="test" data-platform="twitch" data-kind="chat">แชท Twitch</button>
 						<button type="button" class="btn" data-action="test" data-platform="youtube" data-kind="chat">แชท YouTube</button>
+						<button type="button" class="btn" data-action="test" data-platform="kick" data-kind="chat">แชท Kick</button>
+						<button type="button" class="btn" data-action="test" data-platform="tiktok" data-kind="chat">แชท TikTok</button>
 						<button type="button" class="btn" data-action="test" data-platform="youtube" data-kind="money">Super Chat</button>
 						<button type="button" class="btn" data-action="test" data-platform="twitch" data-kind="money">Bits</button>
+						<button type="button" class="btn" data-action="test" data-platform="kick" data-kind="money">Kick Gift</button>
+						<button type="button" class="btn" data-action="test" data-platform="tiktok" data-kind="money">TikTok Gift</button>
 						<button type="button" class="btn" data-action="test" data-platform="twitch" data-kind="sub">ซับใหม่</button>
 						<button type="button" class="btn ghost" data-action="clear">ล้างจอ</button>
 					</div>

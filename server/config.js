@@ -27,6 +27,17 @@ export const DEFAULT_CONFIG = {
 		showSuperChat: true,
 		showMemberEvents: true,
 	},
+	kick: {
+		enabled: false,
+		channel: "", // ชื่อช่องบน kick.com (slug เช่น xqc)
+		showSubEvents: true, // อีเวนต์ติดซับ / ไฮไลต์
+	},
+	tiktok: {
+		enabled: false,
+		channel: "", // ชื่อผู้ใช้ TikTok (@ ไม่บังคับ เช่น nasa)
+		showGiftEvents: true,
+		showMemberEvents: true,
+	},
 	emotes: { bttv: true, sevenTv: true, ffz: true },
 	filters: { hideCommands: true, maxLength: 300, blockedUsers: [], blockedWords: [] },
 	theme: {
@@ -50,6 +61,8 @@ export const DEFAULT_CONFIG = {
 		colorMode: "platform", // platform | chat | fixed
 		twitchColor: "#a970ff",
 		youtubeColor: "#ff4e45",
+		kickColor: "#53fc18",
+		tiktokColor: "#fe2c55",
 		accentBar: true,
 		showPlatformIcon: true,
 		showBadges: true,

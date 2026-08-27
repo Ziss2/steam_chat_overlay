@@ -14,6 +14,8 @@
 	--emote-size: 28px;
 	--twitch-color: #a970ff;
 	--youtube-color: #ff4e45;
+	--kick-color: #53fc18;
+	--tiktok-color: #fe2c55;
 	--accent: var(--twitch-color);
 	--anim-duration: 260ms;
 	--avatar-size: 56px;
@@ -110,6 +112,14 @@ body.bg-solid {
 
 .msg[data-platform="youtube"] {
 	--accent: var(--youtube-color);
+}
+
+.msg[data-platform="kick"] {
+	--accent: var(--kick-color);
+}
+
+.msg[data-platform="tiktok"] {
+	--accent: var(--tiktok-color);
 }
 
 .msg .content {

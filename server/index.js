@@ -12,6 +12,8 @@ import { config, DEFAULT_CONFIG, ROOT_DIR } from "./config.js"
 import { Hub } from "./hub.js"
 import { TwitchSource } from "./twitch/index.js"
 import { YouTubeSource } from "./youtube/index.js"
+import { KickSource } from "./kick/index.js"
+import { TikTokSource } from "./tiktok/index.js"
 import { createEvent, createMessage, emoteFragment, textFragment } from "./message.js"
 import { twitchAvatar } from "./avatars.js"
 import { logger } from "./util.js"
@@ -20,6 +22,8 @@ const log = logger("server")
 const hub = new Hub()
 const twitch = new TwitchSource({ hub, config })
 const youtube = new YouTubeSource({ hub, config })
+const kick = new KickSource({ hub, config })
+const tiktok = new TikTokSource({ hub, config })
 
 const app = express()
 app.disable("x-powered-by")
@@ -70,6 +74,8 @@ app.post("/api/reconnect", async (req, res) => {
 	const platform = req.body?.platform
 	if (!platform || platform === "twitch") await twitch.start()
 	if (!platform || platform === "youtube") await youtube.start()
+	if (!platform || platform === "kick") await kick.start()
+	if (!platform || platform === "tiktok") await tiktok.start()
 	res.json({ ok: true })
 })
 
@@ -79,7 +85,7 @@ app.post("/api/clear", (req, res) => {
 })
 
 app.post("/api/test", (req, res) => {
-	const platform = req.body?.platform === "youtube" ? "youtube" : "twitch"
+	const platform = ["twitch", "youtube", "kick", "tiktok"].includes(req.body?.platform) ? req.body.platform : "twitch"
 	const kind = req.body?.kind || "chat"
 	hub.publish(buildTestMessage(platform, kind))
 	res.json({ ok: true })
@@ -88,50 +94,86 @@ app.post("/api/test", (req, res) => {
 /** Sample messages so the overlay can be styled without a live stream. */
 function buildTestMessage(platform, kind) {
 	const isTwitch = platform === "twitch"
+	const isKick = platform === "kick"
+	const isTikTok = platform === "tiktok"
+	const isYouTube = platform === "youtube"
 	// Use the configured channel for Twitch samples so the real avatar/badges show up.
 	const login = config.get().twitch.channel || "kaoruko_dev"
-	const author = isTwitch
-		? {
-				id: "t-demo",
-				name: login,
-				display: login,
-				color: "#00d68f",
-				badges: [
-					{ id: "moderator", label: "Moderator", image: "" },
-					{ id: "subscriber", label: "Subscriber", image: "" },
-				],
-				roles: { mod: true, sub: true },
-			}
-		: {
-				id: "y-demo",
-				name: "somchai",
-				display: "สมชาย ดูสตรีม",
-				color: "",
-				badges: [{ id: "member", label: "สมาชิก", image: "" }],
-				roles: { member: true },
-			}
+	let author
+	if (isTwitch) {
+		author = {
+			id: "t-demo",
+			name: login,
+			display: login,
+			color: "#00d68f",
+			badges: [
+				{ id: "moderator", label: "Moderator", image: "" },
+				{ id: "subscriber", label: "Subscriber", image: "" },
+			],
+			roles: { mod: true, sub: true },
+		}
+	} else if (isKick) {
+		author = {
+			id: "k-demo",
+			name: "kickuser",
+			display: "KickUser",
+			color: "#53fc18",
+			avatar: "",
+			badges: [{ id: "moderator", label: "Moderator", image: "" }],
+			roles: { mod: true },
+		}
+	} else if (isTikTok) {
+		author = {
+			id: "tt-demo",
+			name: "tiktokuser",
+			display: "TikTokUser",
+			color: "",
+			avatar: "",
+			badges: [],
+			roles: { member: true },
+		}
+	} else {
+		author = {
+			id: "y-demo",
+			name: "somchai",
+			display: "สมชาย ดูสตรีม",
+			color: "",
+			badges: [{ id: "member", label: "สมาชิก", image: "" }],
+			roles: { member: true },
+		}
+	}
 
 	if (kind === "money") {
+		const text =
+			isTwitch ? "ส่งบิตให้กำลังใจครับ!"
+				: isKick ? "ส่งของขวัญให้กำลังใจครับ!"
+					: isTikTok ? "ส่งเพชรให้กำลังใจครับ!" : "สู้ๆ นะครับ ชอบคอนเทนต์มาก"
+		let event
+		if (isTwitch) event = createEvent({ type: "cheer", label: "Cheer", amount: "1,000 Bits", bg: "rgba(145,70,255,0.35)", fg: "#e3d4ff" })
+		else if (isKick) event = createEvent({ type: "gift", label: "Gift", amount: "100 Kick", bg: "rgba(83,252,24,0.4)", fg: "#eaffe0" })
+		else if (isTikTok) event = createEvent({ type: "gift", label: "Gift", amount: "100 เพชร", bg: "rgba(254,44,85,0.4)", fg: "#ffe3ea" })
+		else event = createEvent({ type: "superchat", label: "Super Chat", amount: "THB 100.00", bg: "rgba(245,124,0,0.9)", fg: "#ffffff" })
 		return createMessage({
 			platform,
 			kind: "event",
 			author,
-			fragments: [textFragment(isTwitch ? "ส่งบิตให้กำลังใจครับ!" : "สู้ๆ นะครับ ชอบคอนเทนต์มาก")],
-			event: isTwitch
-				? createEvent({ type: "cheer", label: "Cheer", amount: "1,000 Bits", bg: "rgba(145,70,255,0.35)", fg: "#e3d4ff" })
-				: createEvent({ type: "superchat", label: "Super Chat", amount: "THB 100.00", bg: "rgba(245,124,0,0.9)", fg: "#ffffff" }),
+			fragments: [textFragment(text)],
+			event,
 		})
 	}
 	if (kind === "sub") {
+		let event
+		if (isTwitch) event = createEvent({ type: "sub", label: "ต่อซับ", amount: "12 เดือน", bg: "rgba(145,70,255,0.32)", fg: "#e6d9ff" })
+		else if (isKick) event = createEvent({ type: "sub", label: "ติดซับ Kick", amount: "12 เดือน", bg: "rgba(83,252,24,0.3)", fg: "#eaffe0" })
+		else if (isTikTok) event = createEvent({ type: "member", label: "สมาชิกใหม่", amount: "ระดับ Fan", bg: "rgba(254,44,85,0.3)", fg: "#ffe3ea" })
+		else event = createEvent({ type: "membership", label: "สมาชิกใหม่", amount: "ระดับ Fan", bg: "rgba(15,157,88,0.85)", fg: "#ffffff" })
 		return createMessage({
 			platform,
 			kind: "event",
 			author,
 			fragments: [],
-			event: isTwitch
-				? createEvent({ type: "sub", label: "ต่อซับ", amount: "12 เดือน", bg: "rgba(145,70,255,0.32)", fg: "#e6d9ff" })
-				: createEvent({ type: "membership", label: "สมาชิกใหม่", amount: "ระดับ Fan", bg: "rgba(15,157,88,0.85)", fg: "#ffffff" }),
-			system: isTwitch ? "KaorukoDev ต่อซับเป็นเดือนที่ 12!" : "",
+			event,
+			system: isTwitch ? "KaorukoDev ต่อซับเป็นเดือนที่ 12!" : isKick ? "KickUser ติดซับเป็นเดือนที่ 12!" : isTikTok ? "TikTokUser สมาชิกใหม่!" : "",
 		})
 	}
 	const fragments = [textFragment("ทดสอบข้อความยาว ๆ ดูการตัดบรรทัดของโอเวอร์เลย์ 🎉 ")]
@@ -140,7 +182,7 @@ function buildTestMessage(platform, kind) {
 			emoteFragment(
 				"Kappa",
 				"https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/2.0",
-				isTwitch ? "twitch" : "youtube",
+				isTwitch ? "twitch" : isKick ? "kick" : isTikTok ? "tiktok" : "youtube",
 			),
 			textFragment(" "),
 		)
@@ -244,6 +286,8 @@ config.on("change", async ({ changed }) => {
 	try {
 		if (changed.includes("twitch") || changed.includes("emotes")) await twitch.start()
 		if (changed.includes("youtube")) await youtube.start()
+		if (changed.includes("kick")) await kick.start()
+		if (changed.includes("tiktok")) await tiktok.start()
 	} catch (error) {
 		log.error("เริ่มแหล่งข้อมูลล้มเหลว:", error.message)
 	}
@@ -252,6 +296,8 @@ config.on("change", async ({ changed }) => {
 
 await twitch.start()
 await youtube.start()
+await kick.start()
+await tiktok.start()
 
 let shuttingDown = false
 function shutdown(signal) {
@@ -261,6 +307,8 @@ function shutdown(signal) {
 	clearInterval(heartbeat)
 	twitch.stop()
 	youtube.stop()
+	kick.stop()
+	tiktok.stop()
 	for (const socket of clients) socket.close()
 	wss.close()
 	server.close(() => process.exit(0))

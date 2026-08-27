@@ -149,17 +149,21 @@ function updateUrls() {
 	set("overlay-url", base)
 	set("overlay-url-twitch", `${base}?platform=twitch`)
 	set("overlay-url-youtube", `${base}?platform=youtube`)
+	set("overlay-url-kick", `${base}?platform=kick`)
+	set("overlay-url-tiktok", `${base}?platform=tiktok`)
 }
 
 function renderStatus(status) {
-	const twitch = status.twitch || {}
-	const youtube = status.youtube || {}
-	const twitchPill = document.getElementById("status-twitch")
-	const youtubePill = document.getElementById("status-youtube")
-	twitchPill.dataset.state = twitch.state || "disabled"
-	twitchPill.textContent = `Twitch: ${STATE_LABELS[twitch.state] || twitch.state || "—"}${twitch.channel ? ` • #${twitch.channel}` : ""}${twitch.detail ? ` • ${twitch.detail}` : ""}`
-	youtubePill.dataset.state = youtube.state || "disabled"
-	youtubePill.textContent = `YouTube: ${STATE_LABELS[youtube.state] || youtube.state || "—"}${youtube.detail ? ` • ${youtube.detail}` : ""}`
+	const platforms = ["twitch", "youtube", "kick", "tiktok"]
+	for (const platform of platforms) {
+		const info = status[platform] || {}
+		const pill = document.getElementById(`status-${platform}`)
+		if (!pill) continue
+		pill.dataset.state = info.state || "disabled"
+		const detail = info.detail ? ` • ${info.detail}` : ""
+		const channel = info.channel ? ` • ${info.channel.startsWith("@") || info.channel.startsWith("#") ? info.channel : (platform === "twitch" ? `#${info.channel}` : `@${info.channel}`)}` : ""
+		pill.textContent = `${platform}: ${STATE_LABELS[info.state] || info.state || "—"}${channel}${detail}`
+	}
 }
 
 document.addEventListener("click", async (event) => {

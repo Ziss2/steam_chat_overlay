@@ -16,6 +16,8 @@ export class Hub extends EventEmitter {
 		this.status = {
 			twitch: { state: "disabled", detail: "", channel: "" },
 			youtube: { state: "disabled", detail: "", videoId: "", mode: "" },
+			kick: { state: "disabled", detail: "", channel: "" },
+			tiktok: { state: "disabled", detail: "", channel: "" },
 		}
 	}
 

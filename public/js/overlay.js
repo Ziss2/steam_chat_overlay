@@ -16,6 +16,8 @@ const debug = params.has("debug") || params.has("preview")
 const PLATFORM_ICONS = {
 	twitch: `<svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.3 0 1 3.3v17.4h5.7V24l3.4-3.3h2.8L19.6 14V0H4.3Zm13.6 13.1-3.4 3.3H11l-3 2.9v-2.9H4.7V1.9h13.2v11.2ZM14.8 5.4h1.9v5.6h-1.9V5.4Zm-5 0h1.9v5.6H9.8V5.4Z"/></svg>`,
 	youtube: `<svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 7.1a3 3 0 0 0-2.1-2.1C19 4.5 12 4.5 12 4.5s-7 0-8.9.5A3 3 0 0 0 1 7.1C.5 9 .5 12 .5 12s0 3 .5 4.9A3 3 0 0 0 3.1 19c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-4.9.5-4.9s0-3-.5-4.9ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>`,
+	kick: `<svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 3.5 7.5 2l2 .2v8.3h5.3L13.6 5l5.4-1.4L19.9 4l-1.9 5.7 1.9 1.2-1.9 5.5-5.4-1.4-.2-5.5H9.5v8.3L7.5 22 2 20.5v-17Zm17.3 6.3 1.2-3.6 1.6.5-1.2 3.6-1.6-.5ZM5 4.6l-.6 1.8 1.7.6.6-1.8-1.7-.6Zm0 10.8 1.7-.6.6 1.8-1.7.6-.6-1.8Z"/></svg>`,
+	tiktok: `<svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.3 2 1.5 3.6 3.5 4v2.7c-1.3 0-2.6-.4-3.7-1.1v6.2c0 3.3-2.7 6-6 6s-6-2.7-6-6 2.7-6 6-6c.3 0 .7 0 1 .1v2.8c-.3-.1-.7-.2-1-.2-1.8 0-3.2 1.4-3.2 3.2s1.4 3.2 3.2 3.2 3.2-1.4 3.2-3.2V3h2.9Z"/></svg>`,
 }
 
 const THEME_NUMBERS = new Set([
@@ -73,6 +75,8 @@ function applyTheme(next) {
 	style.setProperty("--text-color", theme.textColor)
 	style.setProperty("--twitch-color", theme.twitchColor)
 	style.setProperty("--youtube-color", theme.youtubeColor)
+	style.setProperty("--kick-color", theme.kickColor)
+	style.setProperty("--tiktok-color", theme.tiktokColor)
 
 	const layout = ["card", "compact", "bubble"].includes(theme.layout) ? theme.layout : "card"
 	chat.className = [
@@ -102,7 +106,12 @@ function nameColor(message) {
 	if (!theme) return ""
 	if (theme.colorMode === "fixed") return theme.textColor
 	if (theme.colorMode === "chat" && message.author.color) return message.author.color
-	return message.platform === "youtube" ? theme.youtubeColor : theme.twitchColor
+	return (
+		message.platform === "youtube" ? theme.youtubeColor
+			: message.platform === "kick" ? theme.kickColor
+				: message.platform === "tiktok" ? theme.tiktokColor
+					: theme.twitchColor
+	)
 }
 
 function renderBadges(message) {

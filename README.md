@@ -1,21 +1,25 @@
-# Chat Overlay — Twitch + YouTube
+# Chat Overlay — Twitch + YouTube + Kick + TikTok
 
-โอเวอร์เลย์แชทสำหรับสตรีม รวมแชท **Twitch** กับ **YouTube Live** มาไว้ในหน้าเดียว
+โอเวอร์เลย์แชทสำหรับสตรีม รวมแชท **Twitch**, **YouTube Live**, **Kick** และ **TikTok Live** มาไว้ในหน้าเดียว
 รันเป็นเซิร์ฟเวอร์เล็ก ๆ บนเครื่องตัวเอง แล้วเอา URL ไปใส่ OBS เป็น **Browser Source**
 ปรับธีมได้สด ๆ จากหน้า Config โดยไม่ต้องรีเฟรช OBS
 
 ```
 Twitch IRC  ─┐
-             ├─► Node server (normalize) ─► WebSocket ─► /overlay  (Browser Source ใน OBS)
-YouTube live ┘                                        └─► /config   (หน้าตั้งค่า + พรีวิว)
+YouTube live ─┤
+Kick WS     ─┼─► Node server (normalize) ─► WebSocket ─► /overlay  (Browser Source ใน OBS)
+TikTok live ─┘                                         └─► /config   (หน้าตั้งค่า + พรีวิว)
 ```
 
 ## ฟีเจอร์
 
-- **สองแพลตฟอร์มพร้อมกัน** — Twitch (anonymous IRC ไม่ต้องล็อกอิน) + YouTube Live
-- **YouTube ต่อได้ 2 วิธี** — Data API v3 (ใส่ API key) หรือโหมดไม่ใช้ key (อ่านหน้า live chat โดยตรง)
+- **สี่แพลตฟอร์มพร้อมกัน** — Twitch, YouTube, Kick และ TikTok เปิด/ปิดแยกกันได้ในหน้า Config
+- **Twitch** อ่านแชทแบบ anonymous IRC ไม่ต้องล็อกอิน
+- **YouTube** ต่อได้ 2 วิธี — Data API v3 (ใส่ API key) หรือโหมดไม่ใช้ key (อ่านหน้า live chat โดยตรง)
   โหมด `auto` จะใช้ API ถ้ามี key และสลับไปโหมดไม่ใช้ key ให้เองเมื่อโควตาหมด
-- **ไอคอนบอกแพลตฟอร์ม + สีชื่อ** แยก Twitch/YouTube (หรือใช้สีที่ผู้ใช้ตั้งเองใน Twitch ก็ได้)
+- **Kick** อ่านแชทสาธารณะผ่าน WebSocket ของ Kick (โปรโตคอลแบบ Pusher) โดยไม่ต้องล็อกอินหรือ API key
+- **TikTok** อ่านแชทสดด้วยไลบรารี `tiktok-live-connector` แค่ใส่ชื่อผู้ใช้ (ไม่ต้อง token)
+- **ไอคอนบอกแพลตฟอร์ม + สีชื่อ** แยกแต่ละแพลตฟอร์ม (หรือใช้สีที่ผู้ใช้ตั้งเองใน Twitch ก็ได้)
 - **Badge** ซับ / มอด / VIP / Prime / เจ้าของช่อง / สมาชิก YouTube (โหลดรูปจริง มี fallback เป็นป้ายข้อความ)
 - **อีโมท** Twitch native + BetterTTV + 7TV + FrankerFaceZ, ส่วน YouTube รองรับ emoji ของช่อง
 - **Super Chat / Super Sticker / สมาชิกใหม่ / Bits (Cheer) / ซับ / Raid** แสดงเป็นการ์ดไฮไลต์พร้อมยอดเงิน
@@ -77,7 +81,23 @@ Copy-Item .env.example .env
 # แก้ .env: YOUTUBE_API_KEY=AIza...
 ```
 
-### 3. ใส่ใน OBS
+### 3. ตั้งค่า Kick
+
+ใส่ **ชื่อช่อง** (slug บน kick.com เช่น `xqc`) แล้วเปิดสวิตช์ — ไม่ต้องล็อกอินหรือ API key
+ระบบจะหา `chatroom id` จาก API สาธารณะ แล้ว subscribe แชทผ่าน WebSocket ของ Kick โดยอัตโนมัติ
+รองรับข้อความ, อีโมทของ Kick, badge (มอด/ซับ/เจ้าของช่อง) และอีเวนต์ติดซับ
+
+### 4. ตั้งค่า TikTok
+
+ใส่ **ชื่อผู้ใช้ TikTok** (เช่น `nasher` หรือ `@nasher`) แล้วเปลิกสวิตช์ — ใช้ไลบรารี `tiktok-live-connector`
+อ่านแชทสดได้ด้วยแค่ชื่อผู้ใช้ ไม่ต้อง token
+รองรับข้อความแชท, อีเวนต์ของขวัญ (Gift) และสมาชิกเข้าร่วม (เปิด/ปิดได้ในหน้า Config)
+ถ้าสตรีมยังไม่เริ่ม ระบบจะขึ้น "รอไลฟ์" และลองใหม่เองทุก 30 วินาที
+
+> หมายเหตุ: TikTok ต้องการแพ็กเกจ `tiktok-live-connector` (เพิ่มใน `package.json` แล้ว)
+> ถ้ายังไม่ได้ติดตั้งให้รัน `npm install` ก่อนรันเซิร์ฟเวอร์
+
+### 5. ใส่ใน OBS
 
 1. Sources → **+** → **Browser**
 2. URL: `http://127.0.0.1:4700/overlay`
@@ -133,7 +153,9 @@ server/
   youtube/scrape.js   อ่านแชทผ่าน innertube (ไม่ใช้ key)
   youtube/api.js      อ่านแชทผ่าน Data API v3
   youtube/index.js    เลือกโหมด, retry, fallback เวลาโควตาหมด/ไลฟ์จบ
-public/
+  kick/index.js        อ่านแชท Kick ผ่าน WebSocket (Pusher) + โปรไฟล์/อีโมท
+  tiktok/index.js      อ่านแชท TikTok Live ผ่าน tiktok-live-connector
+ public/
   overlay.html/js     ตัวโอเวอร์เลย์ (ใส่ใน OBS)
   config.html/js      หน้าตั้งค่า + พรีวิวสด
   css/                สไตล์ทั้งสองหน้า
@@ -147,8 +169,8 @@ public/
 | PUT | `/api/config` | ส่ง patch บางส่วน เช่น `{"theme":{"fontSize":24}}` |
 | GET | `/api/status` | สถานะการเชื่อมต่อของแต่ละแพลตฟอร์ม |
 | GET | `/api/avatar?platform=twitch&login=xxx` | หา avatar (แคชในหน่วยความจำ ใช้ Twitch GQL + decapi.me สำรอง) |
-| POST | `/api/reconnect` | `{"platform":"twitch"}` (ไม่ใส่ = ทั้งสอง) |
-| POST | `/api/test` | `{"platform":"youtube","kind":"money"}` ส่งข้อความทดสอบ (`chat`/`money`/`sub`) |
+| POST | `/api/reconnect` | `{"platform":"twitch"}` (ไม่ใส่ = ทุกแพลตฟอร์ม) |
+| POST | `/api/test` | `{"platform":"tiktok","kind":"money"}` ส่งข้อความทดสอบ (`chat`/`money`/`sub`) |
 | POST | `/api/clear` | ล้างข้อความบนจอ |
 
 WebSocket อยู่ที่ `/ws` ส่ง event: `hello`, `chat`, `remove`, `clear`, `status`, `config`
@@ -160,6 +182,8 @@ WebSocket อยู่ที่ `/ws` ส่ง event: `hello`, `chat`, `remove`
 | แถบสถานะ YouTube ขึ้น "รอไลฟ์" | ยังไม่ได้เริ่มไลฟ์ หรือปิดแชท — ระบบจะลองใหม่เองทุก 30 วิ |
 | YouTube ขึ้น "โควตาหมด" | โหมด `auto` จะสลับไป scrape ให้เอง ถ้าตั้ง `api` ไว้ให้เปลี่ยนโหมด |
 | Twitch ไม่มีข้อความ | เช็กสะกดชื่อช่อง (ต้องเป็น login ไม่ใช่ชื่อโชว์) และช่องต้องมีคนคุยอยู่ |
+| Kick ขึ้น "รอ/ต่อใหม่" ตลอด | เช็กสะกดชื่อช่อง (slug บน kick.com) ว่าเปิดช่องและมีแชทสดอยู่ |
+| TikTok ขึ้น "รอไลฟ์" | ผู้ใช้ยังไม่ได้ไลฟ์ — ระบบลองใหม่เองทุก 30 วินาที (ลองเปิดไลฟ์หรือเช็กสะกดชื่อ) |
 | Badge เป็นป้ายข้อความ ไม่ใช่รูป | โหลดรูป badge ไม่สำเร็จ (เน็ต/ปลายทางล่ม) ระบบ fallback ให้อ่านได้เหมือนกัน |
 | ข้อความไม่ขึ้นใน OBS แต่ขึ้นในเบราว์เซอร์ | กด Refresh ที่ Browser Source หรือเช็กว่า URL ใช้ `127.0.0.1` ตรงกับพอร์ตที่รัน |
 | ขึ้น `พอร์ต 4700 ถูกใช้งานอยู่แล้ว` | มีเซิร์ฟเวอร์ตัวเดิมเปิดอยู่ ปิดหน้าต่างนั้นก่อน หรือตั้ง `PORT` ใน `.env` |
@@ -171,4 +195,6 @@ WebSocket อยู่ที่ `/ws` ส่ง event: `hello`, `chat`, `remove`
 - โหมด YouTube แบบไม่ใช้ key พึ่งพา endpoint ภายในของ YouTube (ไม่ใช่ API ที่รับประกัน)
 - โหมด YouTube API v3 ไม่มีรูป emoji ของช่อง (API ส่งมาเป็นข้อความ) — โหมด scrape ได้รูปครบ
 - อ่านแชทอย่างเดียว ไม่ได้ส่งข้อความหรือสั่งมอดใด ๆ (ไม่ต้องใช้ token จึงปลอดภัยกับบัญชี)
+- Kick อ่านแชทสาธารณะผ่าน WebSocket ของ Kick โดยตรง (ไม่มี API ทางการ) ถ้าโปรโตคอลเปลี่ยนอาจต้องอัปเดตโค้ด
+- TikTok พึ่งพา `tiktok-live-connector` (แพ็กเกจภายนอก) ในการต่อ WebSocket แชทสด
 - badge/อีโมทเสริมโหลดจากบริการภายนอก (Twitch GQL, BTTV, 7TV, FFZ) ถ้าล่มจะข้ามให้เอง
