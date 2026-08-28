@@ -1,0 +1,45 @@
+{
+  "name": "steam-chat-overlay",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Stream chat overlay for OBS that merges Twitch, YouTube, Kick and TikTok live chat into one browser source",
+  "type": "module",
+  "main": "server/index.js",
+  "bin": {
+    "steam-chat-overlay": "server/index.js"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "lint": "echo \"Add your linter here\" && exit 1",
+    "test": "echo \"Add tests here\" && exit 1",
+    "package": "node -e \"const fs=require('fs');const p=require('./package.json');const v=p.version;fs.mkdirSync('release',{recursive:true});fs.cpSync('server','release/server',{recursive:true});fs.cpSync('public','release/public',{recursive:true});fs.copyFileSync('start.bat','release/start.bat');fs.copyFileSync('package.json','release/package.json');fs.copyFileSync('package-lock.json','release/package-lock.json');fs.copyFileSync('.env.example','release/.env.example');fs.copyFileSync('config.example.json','release/config.example.json');console.log('Packaged to release/');console.log('Run: npm install --production --prefix release');console.log('Then zip the release/ folder');\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "obs",
+    "overlay",
+    "twitch",
+    "youtube",
+    "kick",
+    "tiktok",
+    "chat"
+  ],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "server/",
+    "public/",
+    "start.bat",
+    "start-minimized.bat",
+    "README.md"
+  ],
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^2.2.0",
+    "tiktok-live-connector": "^2.4.4",
+    "ws": "^8.18.0"
+  }
+}

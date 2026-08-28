@@ -1,0 +1,90 @@
+{
+  "server": {
+    "port": 4700,
+    "host": "0.0.0.0"
+  },
+  "twitch": {
+    "enabled": true,
+    "channel": "your_twitch_login",
+    "showSubEvents": true
+  },
+  "youtube": {
+    "enabled": true,
+    "mode": "auto",
+    "apiKey": "",
+    "channelId": "",
+    "videoId": "",
+    "pollIntervalMs": 4000,
+    "showSuperChat": true,
+    "showMemberEvents": true
+  },
+  "kick": {
+    "enabled": false,
+    "channel": "",
+    "showSubEvents": true
+  },
+  "tiktok": {
+    "enabled": false,
+    "channel": "",
+    "showGiftEvents": true,
+    "showMemberEvents": true
+  },
+  "emotes": {
+    "bttv": true,
+    "sevenTv": true,
+    "ffz": true
+  },
+  "filters": {
+    "hideCommands": true,
+    "maxLength": 300,
+    "blockedUsers": ["nightbot", "streamelements", "streamlabs"],
+    "blockedWords": []
+  },
+  "app": {
+    "autoRun": false,
+    "startMinimized": false,
+    "autoReconnect": true
+  },
+  "theme": {
+    "fontFamily": "Kanit, Noto Sans Thai, Segoe UI, sans-serif",
+    "fontSize": 20,
+    "fontWeight": 500,
+    "nameWeight": 700,
+    "lineHeight": 1.35,
+    "width": 420,
+    "align": "left",
+    "direction": "bottom",
+    "layout": "card",
+    "textColor": "#ffffff",
+    "bgColor": "#000000",
+    "bgOpacity": 0.55,
+    "radius": 12,
+    "gap": 8,
+    "padding": 10,
+    "outline": true,
+    "shadow": true,
+    "colorMode": "platform",
+    "twitchColor": "#a970ff",
+    "youtubeColor": "#ff4e45",
+    "kickColor": "#53fc18",
+    "tiktokColor": "#fe2c55",
+    "accentBar": true,
+    "showPlatformIcon": true,
+    "showBadges": true,
+    "showEmotes": true,
+    "showTimestamps": false,
+    "showAvatar": false,
+    "avatarSize": 56,
+    "bubbleColor": "#fff6da",
+    "bubbleTextColor": "#1b1b1b",
+    "liveMotion": true,
+    "emoteSize": 28,
+    "animation": "slide",
+    "maxMessages": 25,
+    "messageLifetimeSec": 0,
+    "background": "transparent",
+    "notificationSound": true,
+    "notificationVolume": 0.5,
+    "notificationSoundUrl": ""
+  }
+}
