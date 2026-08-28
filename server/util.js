@@ -2,7 +2,7 @@
  * Shared helpers: logging, timers, HTTP fetch wrappers, backoff, id helpers.
  */
 
-export const BROWSER_UA =
+const BROWSER_UA =
 	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 
 const LEVELS = { debug: 10, info: 20, warn: 30, error: 40 }
@@ -29,14 +29,8 @@ export function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export function clamp(value, min, max) {
-	const n = Number(value)
-	if (!Number.isFinite(n)) return min
-	return Math.min(max, Math.max(min, n))
-}
-
 export function randomId(prefix = "id") {
-	return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+	return `${prefix}_${Date.now().toString(36)}}_${Math.random().toString(36).slice(2, 8)}`
 }
 
 /** Exponential backoff with jitter, used by every reconnect loop. */

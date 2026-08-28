@@ -136,13 +136,13 @@ export class TikTokSource {
 					roles: rolesFrom(user),
 				},
 				fragments: [textFragment(`ส่ง ${giftName}${count}`)],
-				event: createEvent({
-					type: "gift",
-					label: "Gift",
-					amount,
-					bg: "rgba(254, 44, 85, 0.4)",
-					fg: "#ffe3ea",
-				}),
+			event: createEvent({
+				type: "gift",
+				label: "Gift",
+				amount,
+				bg: "rgba(254, 44, 85, 0.85)",
+				fg: "#ffe3ea",
+			}),
 				timestamp: Date.now(),
 			})
 			this.hub.publish(message)
@@ -169,7 +169,7 @@ export class TikTokSource {
 					type: "member",
 					label: "เข้าร่วมสมาชิก",
 					amount: "",
-					bg: "rgba(254, 44, 85, 0.3)",
+					bg: "rgba(254, 44, 85, 0.85)",
 					fg: "#ffe3ea",
 				}),
 				timestamp: Date.now(),

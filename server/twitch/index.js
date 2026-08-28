@@ -209,11 +209,11 @@ export class TwitchSource {
 				type: "cheer",
 				label: "Cheer",
 				amount: `${bits.toLocaleString("en-US")} Bits`,
-				bg: "rgba(145, 70, 255, 0.35)",
+				bg: "rgba(145, 70, 255, 0.85)",
 				fg: "#e3d4ff",
 			})
 		} else if (tags["msg-id"] === "highlighted-message") {
-			event = createEvent({ type: "highlight", label: "Highlighted", bg: "rgba(117, 94, 188, 0.3)" })
+			event = createEvent({ type: "highlight", label: "Highlighted", bg: "rgba(117, 94, 188, 0.85)" })
 		}
 
 		this.hub.publish(
@@ -273,7 +273,7 @@ export class TwitchSource {
 					type: msgId === "raid" ? "raid" : "sub",
 					label: label || msgId,
 					amount,
-					bg: "rgba(145, 70, 255, 0.32)",
+					bg: "rgba(145, 70, 255, 0.85)",
 					fg: "#e6d9ff",
 				}),
 				system: systemMsg,
@@ -289,5 +289,3 @@ export class TwitchSource {
 		this.client = null
 	}
 }
-
-export { buildFragments, parseEmoteTag }

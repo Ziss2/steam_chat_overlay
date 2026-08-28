@@ -389,7 +389,7 @@ body.bg-solid {
 	border: 3px solid rgba(255, 255, 255, 0.67);
 }
 
-/* ===== เลย์เอาต์ฟองข้อความ (พอร์ตมาจาก chatV2) ===== */
+/* ===== เลย์เอาต์ฟองข้อความ ===== */
 .chat.layout-bubble {
 	gap: calc(var(--gap) + 6px);
 }

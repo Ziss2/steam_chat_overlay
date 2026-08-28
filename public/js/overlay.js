@@ -31,6 +31,68 @@ const THEME_BOOLEANS = new Set([
 
 let theme = null
 const timers = new Map()
+let lastSoundTime = 0
+const SOUND_COOLDOWN_MS = 500
+let notifyBlobUrl = null
+const notifyAudio = new Audio()
+notifyAudio.preload = "auto"
+
+function createNotifyBlobUrl() {
+	if (notifyBlobUrl) return notifyBlobUrl
+	try {
+		const sampleRate = 44100
+		const duration = 0.12
+		const frequency = 880
+		const numSamples = Math.floor(sampleRate * duration)
+		const buffer = new ArrayBuffer(44 + numSamples * 2)
+		const view = new DataView(buffer)
+		const writeStr = (offset, str) => {
+			for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i))
+		}
+		writeStr(0, "RIFF")
+		view.setUint32(4, 36 + numSamples * 2, true)
+		writeStr(8, "WAVE")
+		writeStr(12, "fmt ")
+		view.setUint32(16, 16, true)
+		view.setUint16(20, 1, true)
+		view.setUint16(22, 1, true)
+		view.setUint32(24, sampleRate, true)
+		view.setUint32(28, sampleRate * 2, true)
+		view.setUint16(32, 2, true)
+		view.setUint16(34, 16, true)
+		writeStr(36, "data")
+		view.setUint32(40, numSamples * 2, true)
+		for (let i = 0; i < numSamples; i++) {
+			const t = i / sampleRate
+			const sample = Math.sin(2 * Math.PI * frequency * t) * 0.3
+			view.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, sample * 32767)), true)
+		}
+		notifyBlobUrl = URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }))
+	} catch {
+		notifyBlobUrl = ""
+	}
+	return notifyBlobUrl
+}
+
+function playNotificationSound() {
+	if (!theme) return
+	if (!theme.notificationSound) return
+	const now = Date.now()
+	if (now - lastSoundTime < SOUND_COOLDOWN_MS) return
+	lastSoundTime = now
+	const volume = Math.max(0, Math.min(1, Number(theme.notificationVolume) || 0.5))
+	const src = theme.notificationSoundUrl || createNotifyBlobUrl()
+	if (!src) return
+	try {
+		notifyAudio.src = src
+		notifyAudio.volume = volume
+		notifyAudio.currentTime = 0
+		const playPromise = notifyAudio.play()
+		if (playPromise) playPromise.catch(() => {})
+	} catch {
+		// ignore autoplay / decode errors
+	}
+}
 
 function hexToRgba(hex, opacity) {
 	const value = String(hex || "#000000").trim()
@@ -363,6 +425,7 @@ function connect() {
 				break
 			case "chat":
 				addMessage(payload.message)
+				playNotificationSound()
 				break
 			case "remove":
 				removeMessages(payload)

@@ -315,6 +315,24 @@
 							<span>ลบข้อความหลัง <output data-output="theme.messageLifetimeSec"></output> วิ (0 = ไม่ลบ)</span>
 							<input type="range" min="0" max="120" step="5" data-path="theme.messageLifetimeSec" />
 						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="theme.notificationSound" />
+							<span>เสียงเตือนเมื่อมีข้อความใหม่</span>
+						</label>
+						<label class="field range">
+							<span>ความดังเสียงเตือน <output data-output="theme.notificationVolume"></output></span>
+							<input type="range" min="0" max="1" step="0.05" data-path="theme.notificationVolume" />
+						</label>
+						<label class="field">
+							<span>ไฟล์เสียงเตือน (URL รูปภาพ/เสียง, เว้นว่าง = ใช้เสียงเริ่มต้น)</span>
+							<input type="text" data-path="theme.notificationSoundUrl" placeholder="https://... หรือ /sounds/notify.mp3" spellcheck="false" list="sound-list" />
+							<datalist id="sound-list"></datalist>
+						</label>
+						<label class="field">
+							<span>อัปโหลดไฟล์เสียง (mp3, wav, ogg, m4a, webm)</span>
+							<input type="file" id="sound-upload" accept="audio/*,.mp3,.wav,.ogg,.m4a,.webm" />
+						</label>
+						<div id="uploaded-sounds" class="uploaded-sounds"></div>
 					</fieldset>
 				</section>
 
@@ -333,6 +351,30 @@
 						<span>บล็อกคำ (บรรทัดละคำ)</span>
 						<textarea rows="4" data-path="filters.blockedWords" data-list="1"></textarea>
 					</label>
+				</section>
+
+				<section class="card">
+					<h2>4. การตั้งค่าแอป</h2>
+					<fieldset>
+						<legend>เริ่มอัตโนมัติ</legend>
+						<label class="switch">
+							<input type="checkbox" data-path="app.autoRun" />
+							<span>เริ่มต้นรันพร้อมเปิดคอมพิวเตอร์ (Windows only)</span>
+						</label>
+						<label class="switch">
+							<input type="checkbox" data-path="app.startMinimized" />
+							<span>ซ่อนหน้าต่าง console เมื่อเริ่มรัน</span>
+						</label>
+						<p class="hint">ต้องเปิด Auto Run ด้วย จึงจะมีผล</p>
+					</fieldset>
+					<fieldset>
+						<legend>การเชื่อมต่อ</legend>
+						<label class="switch">
+							<input type="checkbox" data-path="app.autoReconnect" />
+							<span>ต่อซ้ำอัตโนมัติเมื่อหลุดการเชื่อมต่อ</span>
+						</label>
+						<p class="hint">แต่ละแพลตฟอร์มมีระบบ retry ของตัวเองอยู่แล้ว เปิดนี้เพื่อให้กลับมาต่อใหม่ทันที</p>
+					</fieldset>
 				</section>
 			</div>
 

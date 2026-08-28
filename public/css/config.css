@@ -289,3 +289,47 @@ details summary {
 	border: 0;
 	display: block;
 }
+
+.uploaded-sounds {
+	display: grid;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.sound-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	border-radius: 9px;
+	border: 1px solid var(--line);
+	background: var(--panel-2);
+}
+
+.sound-item button {
+	padding: 5px 9px;
+	border-radius: 7px;
+	border: 1px solid var(--line);
+	background: transparent;
+	color: var(--text);
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.sound-item button:hover {
+	background: #2a2f3c;
+}
+
+.sound-item .name {
+	flex: 1 1 auto;
+	font-size: 13px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sound-item audio {
+	height: 32px;
+	width: 180px;
+}

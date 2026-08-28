@@ -40,6 +40,11 @@ export const DEFAULT_CONFIG = {
 	},
 	emotes: { bttv: true, sevenTv: true, ffz: true },
 	filters: { hideCommands: true, maxLength: 300, blockedUsers: [], blockedWords: [] },
+	app: {
+		autoRun: false, // เริ่มต้นรันพร้อมเปิดคอมพิวเตอร์ (Windows only)
+		startMinimized: false, // ซ่อนหน้าต่าง console เมื่อเริ่มรัน
+		autoReconnect: true, // ต่อซ้ำอัตโนมัติเมื่อหลุด
+	},
 	theme: {
 		fontFamily: "Kanit, Noto Sans Thai, Segoe UI, sans-serif",
 		fontSize: 20,
@@ -78,6 +83,9 @@ export const DEFAULT_CONFIG = {
 		maxMessages: 25,
 		messageLifetimeSec: 0, // 0 = keep until pushed out
 		background: "transparent", // transparent | any CSS color (chroma key)
+		notificationSound: true,
+		notificationVolume: 0.5,
+		notificationSoundUrl: "",
 	},
 }
 
@@ -101,7 +109,7 @@ function isPlainObject(value) {
 	return !!value && typeof value === "object" && !Array.isArray(value)
 }
 
-export function deepMerge(base, patch) {
+function deepMerge(base, patch) {
 	if (!isPlainObject(patch)) return structuredClone(base)
 	const out = structuredClone(base)
 	for (const [key, value] of Object.entries(patch)) {
@@ -212,5 +220,6 @@ class ConfigStore extends EventEmitter {
 	}
 }
 
-export const config = new ConfigStore()
-export const CONFIG_FILE = CONFIG_PATH
+const config = new ConfigStore()
+export { config }
+const CONFIG_FILE = CONFIG_PATH

@@ -126,7 +126,7 @@ function eventFromPayload(payload, options = {}) {
 			type: "sub",
 			label: type === "highlight" ? "ไฮไลต์" : "ติดซับ Kick",
 			amount: payload.subscription?.duration ? `${payload.subscription.duration} เดือน` : "",
-			bg: "rgba(83, 252, 24, 0.3)",
+			bg: "rgba(83, 252, 24, 0.85)",
 			fg: "#eaffe0",
 		}),
 		timestamp: Date.parse(payload.created_at) || Date.now(),

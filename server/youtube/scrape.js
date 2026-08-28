@@ -94,7 +94,7 @@ function timestampFrom(renderer) {
 }
 
 /** Convert one innertube chat item into a normalized message (or null to skip). */
-export function itemToMessage(item, options = {}) {
+function itemToMessage(item, options = {}) {
 	const showEmotes = options.showEmotes !== false
 	const showSuperChat = options.showSuperChat !== false
 	const showMemberEvents = options.showMemberEvents !== false

@@ -6,7 +6,9 @@
  */
 import path from "node:path"
 import os from "node:os"
+import fs from "node:fs"
 import express from "express"
+import multer from "multer"
 import { WebSocketServer } from "ws"
 import { config, DEFAULT_CONFIG, ROOT_DIR } from "./config.js"
 import { Hub } from "./hub.js"
@@ -17,6 +19,7 @@ import { TikTokSource } from "./tiktok/index.js"
 import { createEvent, createMessage, emoteFragment, textFragment } from "./message.js"
 import { twitchAvatar } from "./avatars.js"
 import { logger } from "./util.js"
+import { isAutoRunEnabled, setAutoRun } from "./autostart.js"
 
 const log = logger("server")
 const hub = new Hub()
@@ -32,7 +35,22 @@ app.use((req, res, next) => {
 	res.setHeader("cache-control", "no-store")
 	next()
 })
+
+const SOUNDS_DIR = path.join(ROOT_DIR, "sounds")
+if (!fs.existsSync(SOUNDS_DIR)) fs.mkdirSync(SOUNDS_DIR, { recursive: true })
+
+const upload = multer({
+	dest: SOUNDS_DIR,
+	limits: { fileSize: 2 * 1024 * 1024 },
+	fileFilter: (req, file, cb) => {
+		const ok = /audio\/(mpeg|mp4|ogg|wav|webm)/.test(file.mimetype)
+			|| /\.(mp3|wav|ogg|m4a|webm)$/i.test(file.originalname)
+		cb(ok ? null : new Error("ชนิดไฟล์ไม่รองรับ"), ok)
+	},
+})
+
 app.use(express.static(path.join(ROOT_DIR, "public"), { extensions: ["html"], cacheControl: false }))
+app.use("/sounds", express.static(SOUNDS_DIR))
 
 app.get("/", (_req, res) => res.redirect("/config"))
 app.get("/overlay", (_req, res) => res.sendFile(path.join(ROOT_DIR, "public", "overlay.html")))
@@ -81,6 +99,45 @@ app.post("/api/reconnect", async (req, res) => {
 
 app.post("/api/clear", (req, res) => {
 	hub.clear(req.body?.platform || null)
+	res.json({ ok: true })
+})
+
+app.get("/api/autostart", (_req, res) => {
+	res.json({ enabled: isAutoRunEnabled() })
+})
+
+app.post("/api/autostart", (req, res) => {
+	try {
+		const { enabled, minimized } = req.body || {}
+		setAutoRun(Boolean(enabled), Boolean(minimized))
+		res.json({ ok: true })
+	} catch (error) {
+		res.status(400).json({ ok: false, error: error.message })
+	}
+})
+
+app.get("/api/sounds", (_req, res) => {
+	try {
+		const files = fs.readdirSync(SOUNDS_DIR).filter((name) => /\.(mp3|wav|ogg|m4a|webm)$/i.test(name))
+		res.json({ files: files.map((name) => ({ name, url: `/sounds/${name}` })) })
+	} catch (error) {
+		res.json({ files: [] })
+	}
+})
+
+app.post("/api/sounds/upload", upload.single("sound"), (req, res) => {
+	if (!req.file) return res.status(400).json({ ok: false, error: "ไม่ได้อัปโหลดไฟล์" })
+	const safeName = `${Date.now()}-${req.file.originalname.replace(/[^a-zA-Z0-9_.-]/g, "_")}`
+	const target = path.join(SOUNDS_DIR, safeName)
+	fs.renameSync(req.file.path, target)
+	res.json({ ok: true, file: { name: safeName, url: `/sounds/${safeName}` } })
+})
+
+app.delete("/api/sounds/:file", (req, res) => {
+	const file = path.basename(req.params.file)
+	const target = path.join(SOUNDS_DIR, file)
+	if (!fs.existsSync(target)) return res.status(404).json({ ok: false, error: "ไม่พบไฟล์" })
+	fs.unlinkSync(target)
 	res.json({ ok: true })
 })
 
@@ -149,9 +206,9 @@ function buildTestMessage(platform, kind) {
 				: isKick ? "ส่งของขวัญให้กำลังใจครับ!"
 					: isTikTok ? "ส่งเพชรให้กำลังใจครับ!" : "สู้ๆ นะครับ ชอบคอนเทนต์มาก"
 		let event
-		if (isTwitch) event = createEvent({ type: "cheer", label: "Cheer", amount: "1,000 Bits", bg: "rgba(145,70,255,0.35)", fg: "#e3d4ff" })
-		else if (isKick) event = createEvent({ type: "gift", label: "Gift", amount: "100 Kick", bg: "rgba(83,252,24,0.4)", fg: "#eaffe0" })
-		else if (isTikTok) event = createEvent({ type: "gift", label: "Gift", amount: "100 เพชร", bg: "rgba(254,44,85,0.4)", fg: "#ffe3ea" })
+		if (isTwitch) event = createEvent({ type: "cheer", label: "Cheer", amount: "1,000 Bits", bg: "rgba(145,70,255,0.85)", fg: "#e3d4ff" })
+		else if (isKick) event = createEvent({ type: "gift", label: "Gift", amount: "100 Kick", bg: "rgba(83,252,24,0.85)", fg: "#eaffe0" })
+		else if (isTikTok) event = createEvent({ type: "gift", label: "Gift", amount: "100 เพชร", bg: "rgba(254,44,85,0.85)", fg: "#ffe3ea" })
 		else event = createEvent({ type: "superchat", label: "Super Chat", amount: "THB 100.00", bg: "rgba(245,124,0,0.9)", fg: "#ffffff" })
 		return createMessage({
 			platform,
@@ -163,9 +220,9 @@ function buildTestMessage(platform, kind) {
 	}
 	if (kind === "sub") {
 		let event
-		if (isTwitch) event = createEvent({ type: "sub", label: "ต่อซับ", amount: "12 เดือน", bg: "rgba(145,70,255,0.32)", fg: "#e6d9ff" })
-		else if (isKick) event = createEvent({ type: "sub", label: "ติดซับ Kick", amount: "12 เดือน", bg: "rgba(83,252,24,0.3)", fg: "#eaffe0" })
-		else if (isTikTok) event = createEvent({ type: "member", label: "สมาชิกใหม่", amount: "ระดับ Fan", bg: "rgba(254,44,85,0.3)", fg: "#ffe3ea" })
+		if (isTwitch) event = createEvent({ type: "sub", label: "ต่อซับ", amount: "12 เดือน", bg: "rgba(145,70,255,0.85)", fg: "#e6d9ff" })
+		else if (isKick) event = createEvent({ type: "sub", label: "ติดซับ Kick", amount: "12 เดือน", bg: "rgba(83,252,24,0.85)", fg: "#eaffe0" })
+		else if (isTikTok) event = createEvent({ type: "member", label: "สมาชิกใหม่", amount: "ระดับ Fan", bg: "rgba(254,44,85,0.85)", fg: "#ffe3ea" })
 		else event = createEvent({ type: "membership", label: "สมาชิกใหม่", amount: "ระดับ Fan", bg: "rgba(15,157,88,0.85)", fg: "#ffffff" })
 		return createMessage({
 			platform,
@@ -292,12 +349,66 @@ config.on("change", async ({ changed }) => {
 		log.error("เริ่มแหล่งข้อมูลล้มเหลว:", error.message)
 	}
 	if (changed.includes("server")) log.warn("เปลี่ยนพอร์ต/host แล้ว — ต้องรีสตาร์ตเซิร์ฟเวอร์เอง")
+	if (changed.includes("app")) {
+		await applyAutoRun().catch((error) => log.warn("Auto Run sync ล้มเหลว:", error.message))
+		if (config.get().app.autoReconnect && !reconnectMonitor) {
+			reconnectMonitor = setInterval(async () => {
+				const status = hub.getStatus()
+				for (const [platform, source] of [
+					["twitch", twitch],
+					["youtube", youtube],
+					["kick", kick],
+					["tiktok", tiktok],
+				]) {
+					const s = status[platform]
+					if (s && s.state === "error" && config.get()[platform].enabled) {
+						log.info(`Auto-reconnect ${platform}: ${s.detail || "error"}`)
+						await source.start()
+					}
+				}
+			}, 30000)
+		} else if (!config.get().app.autoReconnect && reconnectMonitor) {
+			clearInterval(reconnectMonitor)
+			reconnectMonitor = null
+		}
+	}
 })
+
+async function applyAutoRun() {
+	const appConfig = config.get().app
+	const current = isAutoRunEnabled()
+	if (appConfig.autoRun && !current) {
+		await setAutoRun(true, appConfig.startMinimized)
+	} else if (!appConfig.autoRun && current) {
+		await setAutoRun(false)
+	}
+}
 
 await twitch.start()
 await youtube.start()
 await kick.start()
 await tiktok.start()
+
+await applyAutoRun().catch((error) => log.warn("Auto Run sync ล้มเหลว:", error.message))
+
+let reconnectMonitor = null
+if (config.get().app.autoReconnect) {
+	reconnectMonitor = setInterval(async () => {
+		const status = hub.getStatus()
+		for (const [platform, source] of [
+			["twitch", twitch],
+			["youtube", youtube],
+			["kick", kick],
+			["tiktok", tiktok],
+		]) {
+			const s = status[platform]
+			if (s && s.state === "error" && config.get()[platform].enabled) {
+				log.info(`Auto-reconnect ${platform}: ${s.detail || "error"}`)
+				await source.start()
+			}
+		}
+	}, 30000)
+}
 
 let shuttingDown = false
 function shutdown(signal) {
@@ -305,6 +416,7 @@ function shutdown(signal) {
 	shuttingDown = true
 	log.info(`ปิดโปรแกรม (${signal})`)
 	clearInterval(heartbeat)
+	if (reconnectMonitor) clearInterval(reconnectMonitor)
 	twitch.stop()
 	youtube.stop()
 	kick.stop()
@@ -318,3 +430,12 @@ function shutdown(signal) {
 process.on("SIGINT", () => shutdown("SIGINT"))
 process.on("SIGTERM", () => shutdown("SIGTERM"))
 process.on("unhandledRejection", (reason) => log.error("unhandledRejection:", reason))
+
+app.use((error, req, res, _next) => {
+	if (error instanceof multer.MulterError) {
+		if (error.code === "LIMIT_FILE_SIZE") return res.status(413).json({ ok: false, error: "ไฟล์ใหญ่เกิน 2MB" })
+		return res.status(400).json({ ok: false, error: error.message })
+	}
+	if (error) return res.status(400).json({ ok: false, error: error.message })
+	res.status(404).json({ ok: false, error: "ไม่พบ" })
+})

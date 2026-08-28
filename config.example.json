@@ -40,6 +40,11 @@
     "blockedUsers": ["nightbot", "streamelements", "streamlabs"],
     "blockedWords": []
   },
+  "app": {
+    "autoRun": false,
+    "startMinimized": false,
+    "autoReconnect": true
+  },
   "theme": {
     "fontFamily": "Kanit, Noto Sans Thai, Segoe UI, sans-serif",
     "fontSize": 20,
@@ -77,6 +82,9 @@
     "animation": "slide",
     "maxMessages": 25,
     "messageLifetimeSec": 0,
-    "background": "transparent"
+    "background": "transparent",
+    "notificationSound": true,
+    "notificationVolume": 0.5,
+    "notificationSoundUrl": ""
   }
 }

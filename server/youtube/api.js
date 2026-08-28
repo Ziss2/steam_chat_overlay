@@ -53,7 +53,7 @@ function authorFrom(details = {}) {
 }
 
 /** One Data API item -> normalized message (null when the event is not renderable). */
-export function apiItemToMessage(item, options = {}) {
+function apiItemToMessage(item, options = {}) {
 	const snippet = item.snippet || {}
 	const author = authorFrom(item.authorDetails)
 	const timestamp = Date.parse(snippet.publishedAt || "") || Date.now()

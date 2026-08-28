@@ -113,12 +113,20 @@ function deepMergeLocal(base, extra) {
 
 function bindControls() {
 	for (const element of document.querySelectorAll("[data-path]")) {
-		const eventName = element.tagName === "SELECT" || element.type === "checkbox" ? "change" : "input"
-		element.addEventListener(eventName, () => {
+		const isCheckbox = element.type === "checkbox"
+		const isSelect = element.tagName === "SELECT"
+		const isText = !isCheckbox && !isSelect
+		const handler = () => {
 			syncOutput(element)
 			if (applyingRemote) return
 			queueSave(element.dataset.path, readControl(element))
-		})
+		}
+		if (isCheckbox || isSelect) {
+			element.addEventListener("change", handler)
+		} else {
+			element.addEventListener("input", handler)
+			element.addEventListener("change", handler)
+		}
 	}
 }
 
@@ -227,7 +235,59 @@ async function init() {
 	populate(data.config)
 	renderStatus(data.status)
 	connectSocket()
+	await loadUploadedSounds()
 }
+
+async function loadUploadedSounds() {
+	try {
+		const response = await fetch("/api/sounds")
+		const data = await response.json()
+		const list = document.getElementById("sound-list")
+		const container = document.getElementById("uploaded-sounds")
+		if (!list || !container) return
+		list.innerHTML = ""
+		container.innerHTML = ""
+		for (const file of data.files) {
+			const option = document.createElement("option")
+			option.value = file.url
+			option.textContent = file.name
+			list.appendChild(option)
+			const item = document.createElement("div")
+			item.className = "sound-item"
+			const name = document.createElement("span")
+			name.className = "name"
+			name.textContent = file.name
+			const audio = document.createElement("audio")
+			audio.controls = true
+			audio.src = file.url
+			const del = document.createElement("button")
+			del.textContent = "ลบ"
+			del.addEventListener("click", async () => {
+				await fetch(`/api/sounds/${encodeURIComponent(file.name)}`, { method: "DELETE" })
+				await loadUploadedSounds()
+			})
+			item.append(name, audio, del)
+			container.appendChild(item)
+		}
+	} catch (error) {
+		console.error("โหลดรายชื่อเสียงไม่สำเร็จ", error)
+	}
+}
+
+document.getElementById("sound-upload")?.addEventListener("change", async (event) => {
+	const input = event.target
+	const file = input.files?.[0]
+	if (!file) return
+	const form = new FormData()
+	form.append("sound", file)
+	const response = await fetch("/api/sounds/upload", { method: "POST", body: form })
+	if (response.ok) {
+		input.value = ""
+		await loadUploadedSounds()
+	} else {
+		alert("อัปโหลดเสียงไม่สำเร็จ")
+	}
+})
 
 init().catch((error) => {
 	console.error(error)

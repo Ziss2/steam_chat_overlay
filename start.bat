@@ -26,6 +26,7 @@ echo เริ่มรัน Steam Chat Overlay  กด Ctrl+C เพื่อ�
 echo หน้าตั้งค่า  http://127.0.0.1:4700/config
 echo URL สำหรับ OBS  http://127.0.0.1:4700/overlay
 echo ถ้าต่อผ่าน VPN ให้ใช้ IP ที่ขึ้นใน log แทน 127.0.0.1
+echo เริ่มซ่อน console: start-minimized.bat
 
 REM เปิดหน้าตั้งค่าหลังเซิร์ฟเวอร์บูตครบประมาณ 4 วินาที
 start "" cmd /c "timeout /t 4 /nobreak >nul && start http://127.0.0.1:4700/config"

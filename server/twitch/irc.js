@@ -10,11 +10,11 @@ const log = logger("twitch-irc")
 const IRC_URL = "wss://irc-ws.chat.twitch.tv:443"
 const TAG_UNESCAPE = { "\\s": " ", "\\:": ";", "\\\\": "\\", "\\r": "\r", "\\n": "\n" }
 
-export function unescapeTagValue(value) {
+function unescapeTagValue(value) {
 	return value.replace(/\\[sn:r\\]/g, (match) => TAG_UNESCAPE[match] ?? match)
 }
 
-export function parseTags(raw) {
+function parseTags(raw) {
 	const tags = {}
 	for (const pair of raw.split(";")) {
 		if (!pair) continue
@@ -27,7 +27,7 @@ export function parseTags(raw) {
 }
 
 /** Parse one IRCv3 line into { tags, prefix, command, params, trailing }. */
-export function parseIrcLine(line) {
+function parseIrcLine(line) {
 	let rest = line.trim()
 	let tags = {}
 	if (rest.startsWith("@")) {

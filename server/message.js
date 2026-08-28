@@ -16,8 +16,8 @@ export function emoteFragment(name, url, provider = "native", zeroWidth = false)
 	return { type: "emote", name, url, provider, zeroWidth }
 }
 
-/** Flatten fragments back into plain text (used by filters and logging). */
-export function fragmentsToText(fragments) {
+/** Flatten fragments back into plain text (used internally). */
+function fragmentsToText(fragments) {
 	return fragments
 		.map((fragment) => (fragment.type === "emote" ? fragment.name : fragment.text || ""))
 		.join("")
