@@ -2,11 +2,18 @@
  * Shared helpers: logging, timers, HTTP fetch wrappers, backoff, id helpers.
  */
 
-const BROWSER_UA =
-	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+import path from "node:path"
+import fs from "node:fs"
 
 const LEVELS = { debug: 10, info: 20, warn: 30, error: 40 }
 const activeLevel = LEVELS[String(process.env.LOG_LEVEL || "info").toLowerCase()] ?? LEVELS.info
+
+const logFilePath = process.env.LOG_FILE ? path.resolve(process.env.LOG_FILE) : null
+if (logFilePath) {
+	try {
+		fs.mkdirSync(path.dirname(logFilePath), { recursive: true })
+	} catch {}
+}
 
 function stamp() {
 	return new Date().toTimeString().slice(0, 8)
@@ -15,7 +22,14 @@ function stamp() {
 export function logger(scope) {
 	const emit = (level, method, args) => {
 		if (LEVELS[level] < activeLevel) return
-		console[method](`${stamp()} [${scope}]`, ...args)
+		const msg = args.map((a) => String(a)).join(" ")
+		const line = `${stamp()} [${scope}] ${msg}`
+		console[method](line)
+		if (logFilePath) {
+			try {
+				fs.appendFileSync(logFilePath, line + "\n", "utf8")
+			} catch {}
+		}
 	}
 	return {
 		debug: (...args) => emit("debug", "log", args),

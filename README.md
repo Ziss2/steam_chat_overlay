@@ -13,6 +13,7 @@ TikTok live ─┘                                         └─► /config   (
 
 ## ฟีเจอร์
 
+- **บันทึก log ลงไฟล์** — ตั้ง `LOG_FILE` ใน `.env` (เช่น `logs/overlay.log`) เพื่อบันทึก log ทั้งหมด
 - **สี่แพลตฟอร์มพร้อมกัน** — Twitch, YouTube, Kick และ TikTok เปิด/ปิดแยกกันได้ในหน้า Config
 - **Twitch** อ่านแชทแบบ anonymous IRC ไม่ต้องล็อกอิน
 - **YouTube** ต่อได้ 2 วิธี — Data API v3 (ใส่ API key) หรือโหมดไม่ใช้ key (อ่านหน้า live chat โดยตรง)
