@@ -37,8 +37,8 @@
     "README.md"
   ],
   "dependencies": {
-    "express": "^4.21.2",
-    "multer": "^2.2.0",
+    "express": "^5.2.1",
+    "multer": "^2.3.0",
     "tiktok-live-connector": "^2.4.4",
     "ws": "^8.18.0"
   }
