@@ -234,6 +234,15 @@ body.bg-solid {
 	border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
+.msg.bot {
+	border-left: 4px solid #00bcd4;
+	background: rgba(0, 188, 212, 0.12);
+}
+
+.msg.bot .name {
+	color: #00bcd4;
+}
+
 .event-chip {
 	display: inline-flex;
 	align-items: center;

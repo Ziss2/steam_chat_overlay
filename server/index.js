@@ -20,6 +20,7 @@ import { createEvent, createMessage, emoteFragment, textFragment } from "./messa
 import { twitchAvatar } from "./avatars.js"
 import { logger } from "./util.js"
 import { isAutoRunEnabled, setAutoRun } from "./autostart.js"
+import { translate } from "./translate.js"
 
 const log = logger("server")
 const hub = new Hub()
@@ -54,6 +55,7 @@ app.use("/sounds", express.static(SOUNDS_DIR))
 
 app.get("/", (_req, res) => res.redirect("/config"))
 app.get("/overlay", (_req, res) => res.sendFile(path.join(ROOT_DIR, "public", "overlay.html")))
+app.get("/translation-overlay", (_req, res) => res.sendFile(path.join(ROOT_DIR, "public", "translation-overlay.html")))
 app.get("/config", (_req, res) => res.sendFile(path.join(ROOT_DIR, "public", "config.html")))
 
 app.get("/api/config", (_req, res) => {
@@ -278,8 +280,9 @@ server.on("error", (error) => {
 	process.exit(1)
 })
 
-const wss = new WebSocketServer({ server, path: "/ws" })
+const wss = new WebSocketServer({ server })
 const clients = new Set()
+const translationClients = new Set()
 
 function send(socket, payload) {
 	if (socket.readyState !== socket.OPEN) return
@@ -293,18 +296,37 @@ function broadcast(payload) {
 	}
 }
 
-wss.on("connection", (socket) => {
-	clients.add(socket)
+function broadcastTranslation(payload) {
+	const data = JSON.stringify(payload)
+	for (const socket of translationClients) {
+		if (socket.readyState === socket.OPEN) socket.send(data)
+	}
+}
+
+wss.on("connection", (socket, req) => {
+	const isTranslation = req.url === "/ws-translations"
+	if (isTranslation) {
+		translationClients.add(socket)
+	} else {
+		clients.add(socket)
+	}
 	socket.isAlive = true
 	socket.on("pong", () => {
 		socket.isAlive = true
 	})
-	send(socket, {
-		type: "hello",
-		config: config.forClient(),
-		status: hub.getStatus(),
-		recent: hub.recent(20),
-	})
+	if (isTranslation) {
+		send(socket, {
+			type: "hello",
+			config: config.forClient(),
+		})
+	} else {
+		send(socket, {
+			type: "hello",
+			config: config.forClient(),
+			status: hub.getStatus(),
+			recent: hub.recent(20),
+		})
+	}
 	socket.on("message", (raw) => {
 		let payload
 		try {
@@ -314,9 +336,15 @@ wss.on("connection", (socket) => {
 		}
 		if (payload?.type === "ping") send(socket, { type: "pong" })
 	})
-	socket.on("close", () => clients.delete(socket))
-	socket.on("error", () => clients.delete(socket))
-	log.debug(`client เชื่อมต่อ (${clients.size} ตัว)`)
+	socket.on("close", () => {
+		if (isTranslation) translationClients.delete(socket)
+		else clients.delete(socket)
+	})
+	socket.on("error", () => {
+		if (isTranslation) translationClients.delete(socket)
+		else clients.delete(socket)
+	})
+	log.debug(`${isTranslation ? "translation" : "client"} เชื่อมต่อ (${isTranslation ? translationClients.size : clients.size} ตัว)`)
 })
 
 const heartbeat = setInterval(() => {
@@ -329,12 +357,46 @@ const heartbeat = setInterval(() => {
 		socket.isAlive = false
 		socket.ping()
 	}
+	for (const socket of translationClients) {
+		if (!socket.isAlive) {
+			socket.terminate()
+			translationClients.delete(socket)
+			continue
+		}
+		socket.isAlive = false
+		socket.ping()
+	}
 }, 30000)
 
 hub.on("chat", (message) => broadcast({ type: "chat", message }))
+hub.on("chat", async (message) => {
+	const translation = config.get().translation
+	if (!translation?.enabled) return
+	if (message.author.name === "__translator_bot__") return
+	if (message.kind !== "chat") return
+	const text = message.text || ""
+	if (!text.trim() || text.length < 2) return
+	try {
+		const translated = await translate(text, translation.sourceLang || "auto", translation.targetLang || "th", translation.provider || "auto")
+		if (!translated || translated === text) return
+		const sourceLang = translation.sourceLang === "auto" ? "auto" : translation.sourceLang
+		hub.emit("translation", {
+			original: text,
+			translated,
+			sourceLang,
+			targetLang: translation.targetLang || "th",
+			platform: message.platform,
+			author: message.author,
+			timestamp: Date.now(),
+		})
+	} catch (error) {
+		log.error("translate error", error.message)
+	}
+})
 hub.on("remove", (payload) => broadcast({ type: "remove", ...payload }))
 hub.on("clear", (payload) => broadcast({ type: "clear", ...payload }))
 hub.on("status", (status) => broadcast({ type: "status", status }))
+hub.on("translation", (data) => broadcastTranslation({ type: "translation", ...data }))
 
 config.on("change", async ({ changed }) => {
 	if (changed.includes("theme") || changed.includes("filters")) {
@@ -422,6 +484,7 @@ function shutdown(signal) {
 	kick.stop()
 	tiktok.stop()
 	for (const socket of clients) socket.close()
+	for (const socket of translationClients) socket.close()
 	wss.close()
 	server.close(() => process.exit(0))
 	setTimeout(() => process.exit(0), 3000).unref()

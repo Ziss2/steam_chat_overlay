@@ -11,7 +11,7 @@ const IRC_URL = "wss://irc-ws.chat.twitch.tv:443"
 const TAG_UNESCAPE = { "\\s": " ", "\\:": ";", "\\\\": "\\", "\\r": "\r", "\\n": "\n" }
 
 function unescapeTagValue(value) {
-	return value.replace(/\\[sn:r\\]/g, (match) => TAG_UNESCAPE[match] ?? match)
+	return value.replace(/\\[\\snr:]/g, (match) => TAG_UNESCAPE[match] ?? match)
 }
 
 function parseTags(raw) {

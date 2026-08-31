@@ -44,7 +44,7 @@ export function sleep(ms) {
 }
 
 export function randomId(prefix = "id") {
-	return `${prefix}_${Date.now().toString(36)}}_${Math.random().toString(36).slice(2, 8)}`
+	return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }
 
 /** Exponential backoff with jitter, used by every reconnect loop. */

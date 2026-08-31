@@ -34,6 +34,14 @@
     "sevenTv": true,
     "ffz": true
   },
+  "translation": {
+    "enabled": false,
+    "targetLang": "th",
+    "sourceLang": "auto",
+    "provider": "auto",
+    "botName": "แปลภาษา",
+    "apiKey": ""
+  },
   "filters": {
     "hideCommands": true,
     "maxLength": 300,

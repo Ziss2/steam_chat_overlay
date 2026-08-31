@@ -40,6 +40,14 @@ export const DEFAULT_CONFIG = {
 	},
 	emotes: { bttv: true, sevenTv: true, ffz: true },
 	filters: { hideCommands: true, maxLength: 300, blockedUsers: [], blockedWords: [] },
+	translation: {
+		enabled: false,
+		targetLang: "th",
+		sourceLang: "auto",
+		provider: "auto",
+		botName: "แปลภาษา",
+		apiKey: "",
+	},
 	app: {
 		autoRun: false, // เริ่มต้นรันพร้อมเปิดคอมพิวเตอร์ (Windows only)
 		startMinimized: false, // ซ่อนหน้าต่าง console เมื่อเริ่มรัน
@@ -183,6 +191,7 @@ class ConfigStore extends EventEmitter {
 		const clone = structuredClone(this.current)
 		clone.youtube.apiKey = clone.youtube.apiKey ? "__set__" : ""
 		clone.youtube.apiKeyFromEnv = Boolean(process.env.YOUTUBE_API_KEY)
+		if (clone.translation) clone.translation.apiKey = clone.translation.apiKey ? "__set__" : ""
 		return clone
 	}
 

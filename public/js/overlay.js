@@ -295,6 +295,7 @@ function buildMessageElement(message) {
 		"msg",
 		message.kind === "event" ? "event" : "",
 		message.system === "action" ? "action" : "",
+		message.bot ? "bot" : "",
 		withAvatar ? "has-avatar" : "",
 	]
 		.filter(Boolean)
